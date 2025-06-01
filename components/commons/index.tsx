@@ -18,4 +18,5 @@ export const components = {
   Dropdown: dynamic(() => import('./Dropdown')),
   Collapse: dynamic(() => import('./Collapse')),
   CustomWidgete920019b2412: dynamic(() => import('./CustomWidgete920019b2412')),
+  CustomWidgete4bc48ddf0e6: dynamic(() => import("./CustomWidgete4bc48ddf0e6")),
 };
