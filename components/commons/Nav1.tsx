@@ -11,7 +11,7 @@ interface OnClickProps {
   onClickPackage?: MouseEventHandler<HTMLElement> | undefined;
   onClickDocs?: MouseEventHandler<HTMLElement> | undefined;
   onClickSearch?: MouseEventHandler<HTMLElement> | undefined;
-  title:string;
+  title?:string
 }
 
 const NavBar: React.FC<OnClickProps> = ({
@@ -24,7 +24,7 @@ const NavBar: React.FC<OnClickProps> = ({
   onClickPackage,
   onClickDocs,
   onClickSearch,
-  title
+  title:string
 }) => {
   const [searchFocused, setSearchFocused] = useState(false);
 
