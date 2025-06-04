@@ -11,6 +11,7 @@ interface OnClickProps {
   onClickPackage?: MouseEventHandler<HTMLElement> | undefined;
   onClickDocs?: MouseEventHandler<HTMLElement> | undefined;
   onClickSearch?: MouseEventHandler<HTMLElement> | undefined;
+  title:string;
 }
 
 const NavBar: React.FC<OnClickProps> = ({
@@ -23,6 +24,7 @@ const NavBar: React.FC<OnClickProps> = ({
   onClickPackage,
   onClickDocs,
   onClickSearch,
+  title
 }) => {
   const [searchFocused, setSearchFocused] = useState(false);
 
@@ -34,7 +36,7 @@ const NavBar: React.FC<OnClickProps> = ({
             <path d="M3 6C3 4.34315 4.34315 3 6 3H18C19.6569 3 21 4.34315 21 6V18C21 19.6569 19.6569 21 18 21H6C4.34315 21 3 19.6569 3 18V6Z" fill="currentColor" fillOpacity="0.2" />
             <path d="M7 8.5C7 7.67157 7.67157 7 8.5 7H15.5C16.3284 7 17 7.67157 17 8.5V17C17 18.6569 15.6569 20 14 20H10C8.34315 20 7 18.6569 7 17V8.5Z" fill="currentColor" />
           </svg>
-          <span className="font-bold text-xl text-gray-800">Hugeicons</span>
+          <span className="font-bold text-xl text-gray-800">{title}</span>
         </div>
 
         <div className="relative">
