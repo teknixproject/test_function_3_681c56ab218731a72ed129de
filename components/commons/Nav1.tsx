@@ -5,26 +5,26 @@ interface OnClickProps {
   id?: string;
   style?: React.CSSProperties;
   className?: string;
+  title?: string;
   onClickIcons?: MouseEventHandler<HTMLElement> | undefined;
   onClickExample?: MouseEventHandler<HTMLElement> | undefined;
   onClickPricing?: MouseEventHandler<HTMLElement> | undefined;
   onClickPackage?: MouseEventHandler<HTMLElement> | undefined;
   onClickDocs?: MouseEventHandler<HTMLElement> | undefined;
   onClickSearch?: MouseEventHandler<HTMLElement> | undefined;
-  title?:string
 }
 
 const NavBar: React.FC<OnClickProps> = ({
   id,
   style,
   className,
+  title = "Hugeicons",
   onClickIcons,
   onClickExample,
   onClickPricing,
   onClickPackage,
   onClickDocs,
   onClickSearch,
-  title:string
 }) => {
   const [searchFocused, setSearchFocused] = useState(false);
 
