@@ -1,8 +1,9 @@
 import _ from 'lodash';
 import { CSSProperties } from 'react';
-
-import { GridItem } from '@/types/gridItem';
 import styled, { css } from 'styled-components';
+
+import { useActions } from '@/hooks/useActions';
+import { GridItem } from '@/types/gridItem';
 
 interface ImageProps {
   data?: GridItem;
@@ -10,8 +11,8 @@ interface ImageProps {
 }
 
 const Image = ({ data, style }: ImageProps) => {
-  const url = _.get(data, 'dataSlice.url', '/default-bg.png');
-
+  const url = _.get(data, 'media.url', '/default-bg.png');
+  const { handleAction } = useActions();
   const newStyle: CSSProperties = {
     ...style,
     position: 'initial',
@@ -30,6 +31,7 @@ const Image = ({ data, style }: ImageProps) => {
     <div
       style={{ width: '100%', height: '100%' }}
       className="relative overflow-hidden flex items-center justify-center"
+      onClick={() => handleAction('onClick')}
     >
       <CsImg
         style={newStyle}

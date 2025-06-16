@@ -1,8 +1,15 @@
 import { stateManagementStore } from '@/stores';
-import { TAction, TActionLoop, TActionLoopOverList, TConditionChildMap } from '@/types';
+import {
+  TAction,
+  TActionLoop,
+  TActionLoopOverList,
+  TConditionChildMap,
+  TTypeSelectState,
+} from '@/types';
 
 import { actionHookSliceStore } from './actionSliceStore';
 import { useConditionAction } from './useConditionAction';
+import { useHandleData } from './useHandleData';
 
 type TProps = {
   executeActionFCType: (action?: TAction) => Promise<void>;
@@ -90,6 +97,7 @@ const handleListLoop = async (
 
 // Main hook
 export const useLoopActions = ({ executeActionFCType }: TProps) => {
+  const { getData } = useHandleData({});
   const findVariable = stateManagementStore((state) => state.findVariable);
   const findAction = actionHookSliceStore((state) => state.findAction);
   const { handleCompareCondition } = useConditionAction({ executeActionFCType });
@@ -108,16 +116,19 @@ export const useLoopActions = ({ executeActionFCType }: TProps) => {
 
       if (!overList?.data) return;
 
-      const { typeStore, variableId, startIndex, endIndex, stepSize, reserverOrder } =
-        overList.data;
-      const variable = findVariable({ type: typeStore, id: variableId });
-      if (!variableId || !variable?.value) return;
+      const { list, startIndex, endIndex, stepSize, reserverOrder } = overList.data;
+      const { type } = list;
+      const variable = findVariable({
+        type: type as TTypeSelectState,
+        id: (list[type] as any).variableId,
+      });
+      if (!variable) return;
 
-      await handleListLoop(variable.value, {
+      await handleListLoop(variable.value || [], {
         reverseOrder: reserverOrder,
-        startIndex,
-        endIndex,
-        stepSize,
+        startIndex: getData(startIndex),
+        endIndex: getData(endIndex),
+        stepSize: getData(stepSize),
       });
     }
   };

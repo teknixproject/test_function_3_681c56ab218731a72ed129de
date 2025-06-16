@@ -2,6 +2,7 @@ import { TTypeSelect } from './actions';
 import { TTypeVariable } from './variable';
 
 export type TTypeSelectState =
+  | 'parameters'
   | 'appState'
   | 'componentState'
   | 'globalState'
@@ -13,6 +14,9 @@ export type TVariable = {
   type: TTypeVariable;
   isList: boolean;
   value: any;
+  succeeded?: boolean;
+  message?: string;
+  statusCode?: number;
 };
 export type TPageVariable = {
   projectId: string;
@@ -28,6 +32,7 @@ export type TPageVariableResponse = {
 
 export type TTypeDocumentState = TTypeSelectState;
 export type TDocumentState = {
+  parameters?: TVariableMap;
   appState?: TVariableMap;
   componentState?: TVariableMap;
   globalState?: TVariableMap;
@@ -49,5 +54,5 @@ export type TDocumentStateUpdate = {
 export type TDocumentStateFind = {
   type: TTypeSelect;
   name?: string;
-  id: string;
+  id?: string;
 };

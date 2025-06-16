@@ -1,11 +1,10 @@
-import { JSONPath } from 'jsonpath-plus';
 import _ from 'lodash';
 import { useEffect, useRef } from 'react';
 
-import { stateManagementStore } from '@/stores';
 import { TAction, TConditional, TConditionalChild, TConditionChildMap } from '@/types';
 
 import { actionHookSliceStore } from './actionSliceStore';
+import { useHandleData } from './useHandleData';
 
 export type TUseActions = {
   executeConditional: (action: TAction<TConditional>) => Promise<void>;
@@ -37,9 +36,8 @@ export const useConditionAction = ({ executeActionFCType }: TProps): TUseActions
   // State management
 
   // Store hooks
-  const { findVariable } = stateManagementStore();
   const { findAction } = actionHookSliceStore();
-
+  const { getData } = useHandleData({});
   // Memoized actions from data
 
   const mounted = useRef(false);
@@ -60,33 +58,14 @@ export const useConditionAction = ({ executeActionFCType }: TProps): TUseActions
   };
 
   const getCompareValue = (compare: TConditionalChild['compare']): boolean => {
-    const firstCompare = compare?.firstValue;
-    const secondCompare = compare?.secondValue;
+    const firstCompare = String(getData(compare?.firstValue));
+    console.log('🚀 ~ getCompareValue ~ firstCompare:', firstCompare);
+    const secondCompare = String(getData(compare?.secondValue));
+    console.log('🚀 ~ getCompareValue ~ secondCompare:', secondCompare);
     if (!firstCompare || !secondCompare) return false;
 
-    let firstValue = '';
-    let secondValue = secondCompare.value;
-    if (firstCompare.variableId) {
-      const variable = findVariable({
-        type: firstCompare.typeStore,
-        id: firstCompare.variableId,
-      });
-      if (firstCompare.optionApiResponse === 'jsonBody') {
-        firstValue = JSONPath({ path: firstCompare.jsonPath!, json: variable?.value?.data })[0];
-      } else if (firstCompare.optionApiResponse === 'statusCode') {
-        firstValue = variable?.value?.statusCode;
-      } else if (firstCompare.optionApiResponse === 'succeeded') {
-        firstValue = variable?.value?.succeeded;
-      } else firstValue = variable?.value || '';
-    }
-    if (secondCompare.variableId) {
-      const variable = findVariable({
-        type: secondCompare.typeStore,
-        id: secondCompare.variableId,
-      });
-      secondValue = variable?.value || '';
-    }
-    const resultCompare = evaluateCondition(firstValue, secondValue, compare.operator);
+    const resultCompare = evaluateCondition(firstCompare, secondCompare, compare.operator);
+    console.log('🚀 ~ getCompareValue ~ resultCompare:', resultCompare);
 
     return resultCompare;
   };

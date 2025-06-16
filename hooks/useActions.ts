@@ -3,26 +3,21 @@ import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import {
-  TAction,
-  TActionApiCall,
-  TActionLoop,
-  TActionNavigate,
-  TActionUpdateState,
-  TConditional,
-  TTriggerActions,
-  TTriggerValue,
+    TAction, TActionApiCall, TActionCustomFunction, TActionLoop, TActionNavigate,
+    TActionUpdateState, TConditional, TTriggerActions, TTriggerValue
 } from '@/types';
 import { GridItem } from '@/types/gridItem';
 
 import { actionHookSliceStore } from './actionSliceStore';
 import { useApiCallAction } from './useApiCallAction';
 import { useConditionAction } from './useConditionAction';
+import { useCustomFunction } from './useCustomFunction';
 import { useLoopActions } from './useLoopActions';
 import { useNavigateAction } from './useNavigateAction';
 import { useUpdateStateAction } from './useUpdateStateAction';
 
 export type TUseActions = {
-  handleAction: (triggerType: TTriggerValue) => Promise<void>;
+  handleAction: (triggerType: TTriggerValue, action?: TTriggerActions) => Promise<void>;
 };
 
 export const useActions = (data?: GridItem): TUseActions => {
@@ -55,6 +50,7 @@ export const useActions = (data?: GridItem): TUseActions => {
   });
   const { handleNavigateAction } = useNavigateAction({ executeActionFCType });
   const { executeLoopOverList } = useLoopActions({ executeActionFCType });
+  const { handleCustomFunction } = useCustomFunction({ executeActionFCType });
 
   const mounted = useRef(false);
 
@@ -76,6 +72,8 @@ export const useActions = (data?: GridItem): TUseActions => {
           return handleApiCallAction(action as TAction<TActionApiCall>);
         case 'updateStateManagement':
           return handleUpdateStateAction(action as TAction<TActionUpdateState>);
+        case 'customFunction':
+          return handleCustomFunction(action as TAction<TActionCustomFunction>);
         default:
           console.warn(`Unknown action type: ${action.type}`);
       }
@@ -98,13 +96,16 @@ export const useActions = (data?: GridItem): TUseActions => {
     // Find and execute the root action (parentId === null)
     const rootAction = Object.values(actionsToExecute).find((action) => !action.parentId);
     if (rootAction) {
+      if (rootAction.delay) {
+        await new Promise((resolve) => setTimeout(resolve, rootAction.delay));
+      }
       await executeActionFCType(rootAction);
     }
   };
   const handleAction = useCallback(
-    async (triggerType: TTriggerValue): Promise<void> => {
+    async (triggerType: TTriggerValue, action?: TTriggerActions): Promise<void> => {
       if (!data?.actions) return;
-      await executeTriggerActions(data.actions, triggerType);
+      await executeTriggerActions(action || data.actions, triggerType);
     },
     [data?.actions, executeTriggerActions]
   );

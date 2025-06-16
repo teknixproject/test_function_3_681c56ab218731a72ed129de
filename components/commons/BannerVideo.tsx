@@ -1,37 +1,21 @@
 'use client';
 
 import _ from 'lodash';
-import { CSSProperties, useEffect, useState } from 'react';
+import { CSSProperties } from 'react';
 
+import { useActions } from '@/hooks/useActions';
 import { getDeviceType } from '@/lib/utils';
 import { GridItem } from '@/types/gridItem';
-import styled, { css } from 'styled-components';
 
 interface BannerVideoCompoProps {
   data?: GridItem;
   style?: CSSProperties;
 }
 
-interface StylesProps {
-  style?: {
-    hover?: CSSProperties;
-    [key: string]: any;
-  };
-  styledComponentCss?: string;
-}
-
-const Container = styled.video<StylesProps>`
-  ${(props) =>
-    props.styledComponentCss
-      ? css`
-          ${props.styledComponentCss}
-        `
-      : ''}
-`;
+const isVideo = (url: string) => /\.(mp4|mov|avi|mkv|webm)(\?.*)?$/i.test(url);
 
 const BannerVideo = ({ data, style }: BannerVideoCompoProps) => {
-  const linkVideo = _.get(data, 'dataSlice.url', '/assets/videos/intro.mov');
-  const [isInView, setIsInView] = useState(false);
+  const url = _.get(data, 'media.url', '/assets/videos/intro.mov');
   const sizeScreen = getDeviceType();
   const isMobile = sizeScreen === 'mobile';
 
@@ -41,54 +25,24 @@ const BannerVideo = ({ data, style }: BannerVideoCompoProps) => {
     objectFit: 'fill',
     height: isMobile ? '100%' : 'auto',
   };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const rect = document.getElementById('banner-video')?.getBoundingClientRect();
-      if (rect && rect.top < window.innerHeight && rect.bottom > 0) {
-        setIsInView(true);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
+  const { handleAction } = useActions();
+  if (!isVideo(url)) return <div style={newStyle}>Unsupported media type</div>;
   return (
-    <div id="banner-video">
-      {isInView ? (
-        <Container
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full aspect-video"
-          style={newStyle}
-          preload="metadata"
-          styledComponentCss={data?.styledComponentCss}
-        >
-          <source src={`${linkVideo}.webm`} type="video/webm" />
-          <source src={linkVideo} type="video/mp4" />
-        </Container>
-      ) : (
-        <Container
-          style={newStyle}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full aspect-video max-sm:h-full"
-          src={linkVideo}
-          preload="metadata"
-          styledComponentCss={data?.styledComponentCss}
-        >
-          <source src={`${linkVideo}.webm`} type="video/webm" />
-          <source src={linkVideo} type="video/mp4" />
-        </Container>
-      )}
-    </div>
+    <video
+      autoPlay
+      loop
+      muted
+      playsInline
+      style={newStyle}
+      controls
+      preload="metadata"
+      onClick={() => handleAction('onClick')}
+      onChange={() => handleAction('onChange')}
+    >
+      <source src={url} type="video/mp4" />
+      <source src={url.replace(/\.\w+$/, '.webm')} type="video/webm" />
+      Your browser does not support the video tag.
+    </video>
   );
 };
 

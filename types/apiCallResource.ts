@@ -1,4 +1,4 @@
-import { TTypeVariable } from '@/types';
+import { TTypeVariable, TVariable } from '@/types';
 
 export enum METHODS {
   GET = 'GET',
@@ -13,9 +13,8 @@ export enum TypeApiCall {
   INDIVIDUAL = 'INDIVIDUAL',
 }
 export type TApiCall = {
+  _id: string;
   projectId: string;
-  documentId: string;
-  uid: string;
   apis: TApiCallValue[];
 };
 export type TApiCallValue = {
@@ -29,13 +28,13 @@ export type TApiCallValue = {
   method?: METHODS;
   headers?: object;
   body?: object;
-  query?: object;
-  variables?: TApiCallVariable[];
-  response?: {
-    data: any;
-    statusCode: number;
-    succeeded: boolean;
-  };
+  query?: {
+    key: string;
+    value: string;
+    variableId: string;
+    type: 'variable' | 'value';
+  }[];
+  variables?: TVariable[];
 };
 export type TApiCallVariable = {
   id: string;

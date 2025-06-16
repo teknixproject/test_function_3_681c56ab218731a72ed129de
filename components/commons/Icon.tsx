@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import { CSSProperties } from 'react';
 
+import { useActions } from '@/hooks/useActions';
 import { GridItem } from '@/types/gridItem';
 
 interface IconCompoProps {
@@ -9,12 +10,12 @@ interface IconCompoProps {
 }
 
 const IconCompo = ({ data }: IconCompoProps) => {
-  const url = _.get(data, 'dataSlice.url');
-
+  const url = _.get(data, 'media.url');
+  const { handleAction } = useActions();
   return url ? (
-    <img src={url} alt="Image" className="w-full h-full" />
+    <img src={url} alt="Image" className="w-full h-full" onClick={() => handleAction('onClick')} />
   ) : (
-    <img src="/default-icon.png" alt="default-icon" />
+    <img src="/default-icon.png" alt="default-icon" onClick={() => handleAction('onClick')} />
   );
 };
 

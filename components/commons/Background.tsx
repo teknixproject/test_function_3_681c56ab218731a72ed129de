@@ -1,10 +1,11 @@
 'use client';
 
-import { CSSProperties, useMemo } from 'react';
-
-import { GridItem } from '@/types/gridItem';
 import _ from 'lodash';
+import { CSSProperties, useMemo } from 'react';
 import styled, { css } from 'styled-components';
+
+import { useActions } from '@/hooks/useActions';
+import { GridItem } from '@/types/gridItem';
 
 interface BackgroundCompoProps {
   data?: GridItem;
@@ -14,6 +15,7 @@ interface BackgroundCompoProps {
 const BackgroundCompo = ({ data, style }: BackgroundCompoProps) => {
   const defaultUrl = '/default-bg.png';
   const url = data?.dataSlice?.url || defaultUrl;
+  const { handleAction } = useActions();
 
   const computedStyle: CSSProperties = useMemo(
     () => ({
@@ -30,6 +32,8 @@ const BackgroundCompo = ({ data, style }: BackgroundCompoProps) => {
       id="background-compo"
       style={computedStyle}
       styledComponentCss={data?.styledComponentCss}
+      onClick={() => handleAction('onClick')}
+      onChange={() => handleAction('onChange')}
     >
       {url ? (
         url.match(/\.(jpeg|jpg|gif|png|svg|webp)$/i) ? (

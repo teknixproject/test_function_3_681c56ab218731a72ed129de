@@ -1,19 +1,20 @@
 import _ from 'lodash';
 import React, { ChangeEvent, useMemo } from 'react';
 import styled, { css, CSSProperties } from 'styled-components';
+import { useDebouncedCallback } from 'use-debounce';
 
-import { useData } from '@/hooks';
 import { useActions } from '@/hooks/useActions';
+import { useHandleData } from '@/hooks/useHandleData';
+import { useUpdateData } from '@/hooks/useUpdateData';
 // import { useData } from '@/hooks';
 import { cn } from '@/lib/utils';
-import { stateManagementStore } from '@/stores/stateManagement';
 import { GridItem } from '@/types/gridItem';
 import { Icon } from '@iconify/react/dist/iconify.js';
 
 type Props = { data: GridItem };
 
 const InputText: React.FC<Props> = ({ data }) => {
-  const { title } = useData({ layoutData: data });
+  const { dataState } = useHandleData({ dataProp: data?.data });
   const { handleAction } = useActions(data);
   const style = _.get(data, 'dataSlice.style', {});
   const newStyle: CSSProperties = {
@@ -28,7 +29,6 @@ const InputText: React.FC<Props> = ({ data }) => {
     width: '100%',
     height: '100%',
   };
-  const variableId = _.get(data, 'dataSlice.variableId', '');
 
   const prefixIcon = useMemo(() => {
     return data?.inputText?.prefixIcon;
@@ -37,23 +37,13 @@ const InputText: React.FC<Props> = ({ data }) => {
     return data?.inputText?.suffixIcon;
   }, [data?.inputText]);
 
-  const { findVariable, updateVariables } = stateManagementStore();
-  const updateVariable = _.debounce((variableId, value: string) => {
-    const variable = findVariable({ id: variableId, type: 'componentState' });
-    if (!variable) return;
-    updateVariables({
-      type: 'componentState',
-      dataUpdate: { ...variable, value },
-    });
-  }, 300);
+  const { updateData } = useUpdateData({ dataProp: data?.data });
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!variableId) return;
-
+  const handleInputChange = useDebouncedCallback((e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
-    updateVariable(variableId, value);
-  };
+    updateData(value);
+  }, 300);
   const handleEnter = (e: any) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -72,7 +62,7 @@ const InputText: React.FC<Props> = ({ data }) => {
         className={cn('w-full h-full outline-none')}
         style={newStyle}
         onChange={handleInputChange}
-        defaultValue={title as string}
+        defaultValue={dataState as string}
         onKeyDown={handleEnter}
         styledComponentCss={data?.styledComponentCss}
       />

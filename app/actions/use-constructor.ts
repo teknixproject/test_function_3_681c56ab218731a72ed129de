@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
+import { useLayoutContext } from '@/context/LayoutContext';
 import _ from 'lodash';
-import { useRef } from 'react';
+import { useEffect } from 'react';
 import useSWR from 'swr';
 
 const fetcher = async (url: string) => {
@@ -12,19 +14,52 @@ const fetcher = async (url: string) => {
 
 export function useConstructorDataAPI(_documentId?: string, pageName?: string) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const prevComponentRef = useRef<string | null>(null);
+  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;
+  const {
+    headerLayout,
+    footerLayout,
+    headerPosition,
+    setHeaderLayout,
+    setFooterLayout,
+    setHeaderPosition,
+  } = useLayoutContext();
 
-  const { data, error } = useSWR(
-    pageName
-      ? `${API_URL}/api/client/getLayout?pId=${process.env.NEXT_PUBLIC_PROJECT_ID}&uid=${pageName}`
-      : null,
+  const { data, error, isLoading } = useSWR(
+    pageName ? `${API_URL}/api/client/getLayout?pId=${projectId}&uid=${pageName}` : null,
     fetcher,
     { revalidateOnFocus: false, refreshInterval: 60000 }
   );
 
+  const newHeaderLayout = _.get(data, 'data.headerLayout.layoutJson', null);
+  const newHeaderId = _.get(data, 'data.headerLayout._id', '');
+  const newFooterLayout = _.get(data, 'data.footerLayout.layoutJson', null);
+  const newFooterId = _.get(data, 'data.footerLayout._id', '');
+  const newHeaderPosition = _.get(data, 'data.headerPosition', '');
+
+  useEffect(() => {
+    if (data && !error) {
+      if (newHeaderId && newHeaderId !== (headerLayout?._id || '')) {
+        setHeaderLayout({ _id: newHeaderId, layoutJson: newHeaderLayout });
+      }
+      if (newFooterId && newFooterId !== (footerLayout?._id || '')) {
+        setFooterLayout({ layoutJson: newFooterLayout, _id: newFooterId });
+      }
+      if (newHeaderPosition && newHeaderPosition !== headerPosition) {
+        setHeaderPosition(newHeaderPosition);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newHeaderId, newFooterId, newHeaderPosition]);
+
   if (error) {
     console.error('❌ Error fetching constructor:', error);
-    return { layout: {}, component: {}, isLoading: false };
+    return {
+      headerLayout: {},
+      bodyLayout: {},
+      footerLayout: {},
+      isLoading: false,
+      error: true,
+    };
   }
 
   if (!data) {
@@ -32,28 +67,32 @@ export function useConstructorDataAPI(_documentId?: string, pageName?: string) {
       headerLayout: {},
       bodyLayout: {},
       footerLayout: {},
-      component: {},
       isLoading: true,
+      error: false,
     };
-  }
-
-  const componentString = data?.componentConfig?.component?.trim() || '';
-  const isValidComponent = typeof componentString === 'string' && componentString;
-
-  if (!isValidComponent) {
-    console.error('❌ Error: componentString is missing or invalid.');
-  } else if (componentString !== prevComponentRef.current) {
-    console.log('🔄 Rebuilding component...');
-    rebuilComponentMonaco(componentString);
-    prevComponentRef.current = componentString;
   }
 
   return {
     headerLayout: _.get(data, 'data.headerLayout.layoutJson', {}),
     bodyLayout: _.get(data, 'data.bodyLayout.layoutJson', {}),
     footerLayout: _.get(data, 'data.footerLayout.layoutJson', {}),
-    component: isValidComponent ? componentString : {},
     isLoading: false,
+    error: false,
+  };
+}
+
+export function useGetModalUI() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;
+
+  const { data, isLoading } = useSWR(
+    `${API_URL}/api/client/getModalLayout?projectId=${projectId}`,
+    fetcher,
+    { revalidateOnFocus: false, refreshInterval: 60000 }
+  );
+  return {
+    isLoading,
+    data: data?.data || [],
   };
 }
 

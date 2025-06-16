@@ -2,7 +2,8 @@ import _ from 'lodash';
 import { CSSProperties, useMemo } from 'react';
 import styled, { css } from 'styled-components';
 
-import { useData } from '@/hooks';
+import { useActions } from '@/hooks/useActions';
+import { useHandleData } from '@/hooks/useHandleData';
 import { convertStyle } from '@/lib/utils';
 import { GridItem } from '@/types/gridItem';
 
@@ -14,9 +15,9 @@ interface TextProps {
 }
 
 const Text = ({ data, style }: TextProps) => {
-  const { title } = useData({ layoutData: data });
-  const combineText = _.get(data, 'dataSlice.combineText', {});
-
+  const { dataState } = useHandleData({ dataProp: data.data });
+  const isCombineText = _.get(data, 'data.type') === 'combineText';
+  const { handleAction } = useActions();
   const newStyle: CSSProperties = {
     ...style,
   };
@@ -25,11 +26,11 @@ const Text = ({ data, style }: TextProps) => {
     return data?.tooltip;
   }, [data]);
 
-  const content = !_.isEmpty(combineText) ? (
-    <TextComplex texts={combineText} style={style} />
+  const content = isCombineText ? (
+    <TextComplex texts={dataState} style={style} />
   ) : (
     <CsText style={convertStyle(newStyle)} styledComponentCss={data?.styledComponentCss}>
-      {_.isObject(title) ? JSON.stringify(title) : title}
+      {_.isObject(dataState) ? JSON.stringify(dataState || 'Text') : dataState || 'Text'}
     </CsText>
   );
 
@@ -40,7 +41,7 @@ const Text = ({ data, style }: TextProps) => {
       <Tooltip>
         <TooltipTrigger asChild>{content}</TooltipTrigger>
         <TooltipContent style={tooltip?.style}>
-          <p>{tooltip?.title}</p>
+          <p onClick={() => handleAction('onClick')}>{tooltip?.title}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -61,7 +62,7 @@ const TextComplex = ({
         ...style,
       }}
     >
-      {texts.map((item, index) => {
+      {texts?.map((item, index) => {
         return (
           <CsStrong
             gradient={item.style.textGradient}

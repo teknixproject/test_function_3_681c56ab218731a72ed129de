@@ -1,6 +1,6 @@
 // import { Content } from '@prismicio/client';
 
-import { GridItem } from "@/types/gridItem";
+import { GridItem } from '@/types/gridItem';
 
 // import { GridItem } from './const';
 
@@ -11,6 +11,7 @@ export interface GridSystemProps {
   isHeader?: boolean;
   isBody?: boolean;
   isFooter?: boolean;
+  style?: any;
 }
 
 // export type SliceItemsType =

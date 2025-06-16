@@ -1,13 +1,12 @@
 'use client';
 import _ from 'lodash';
-import dynamic from 'next/dynamic';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
 import { rebuilComponentMonaco } from '@/app/actions/use-constructor';
 import { CONFIGS } from '@/configs';
-import { usePageActions } from '@/hooks/usePageActions';
+import { useHandleProps } from '@/hooks/useHandleProps';
 import { componentRegistry } from '@/lib/slices';
 import { cn, convertStyle, getDeviceSize, setActive } from '@/lib/utils';
 import { useApiCallStore } from '@/providers';
@@ -29,9 +28,10 @@ const { updateTitleInText } = dynamicGenarateUtil;
 //#region Render Slice
 export const RenderSlice: React.FC<TRenderSlice> = ({ slice, isMenu }) => {
   const pathname = usePathname();
-  const { apiData } = useApiCallStore((state) => state);
+  const apiData = useApiCallStore((state) => state.apiData);
   const [sliceRef, setSliceRef] = useState<GridItem | null | undefined>(slice);
-  const { multiples } = usePageActions({ actionsProp: slice?.props });
+  const { multiples } = useHandleProps({ actionsProp: slice?.props });
+
   useEffect(() => {
     if (
       sliceRef &&
@@ -52,7 +52,8 @@ export const RenderSlice: React.FC<TRenderSlice> = ({ slice, isMenu }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiData, slice, updateTitleInText]);
 
-  const key = sliceRef?.id?.split('$')[0];
+  const key = _.upperFirst(sliceRef?.id?.split('$')[0]);
+
   const isButton = key === 'button';
 
   const data = useMemo(() => {
@@ -65,6 +66,7 @@ export const RenderSlice: React.FC<TRenderSlice> = ({ slice, isMenu }) => {
   const SliceComponent = useMemo(() => {
     return componentRegistry[key as keyof typeof componentRegistry];
   }, [key]);
+
 
   const styleSlice = (_.get(sliceRef, [styleDevice]) as React.CSSProperties) || sliceRef?.style;
 
@@ -94,13 +96,16 @@ export const RenderSlice: React.FC<TRenderSlice> = ({ slice, isMenu }) => {
   }, [sliceRef, styleDevice]);
 
   const content = SliceComponent ? (
-    <SliceComponent
-      id={_.get(sliceRef, 'id')}
-      style={isButton ? styleSlice : convertStyle(styleSlice)}
-      data={sliceRef}
-      childs={sliceRef?.childs}
-      {...multiples}
-    />
+    <>
+      <SliceComponent
+        id={_.get(sliceRef, 'id')}
+        style={isButton ? styleSlice : convertStyle(styleSlice)}
+        data={sliceRef}
+        childs={sliceRef?.childs}
+        styleDevice={styleDevice}
+        {...multiples}
+      />
+    </>
   ) : (
     sliceRef?.childs && (
       <RenderGrid items={sliceRef.childs} idParent={sliceRef.id!} slice={sliceRef} />
@@ -173,9 +178,9 @@ export const RenderGrid: React.FC<RenderGripProps> = ({ idParent, slice }) => {
 
   // Memoize the rendered children to avoid unnecessary re-renders
   const renderedChildren = useMemo(() => {
-    return _.map(childs, (child, index) => (
-      <RenderSlice slice={child} key={index} idParent={idParent} />
-    ));
+    return _.map(childs, (child, index) => {
+      return <RenderSlice slice={child} key={index} idParent={idParent} />;
+    });
   }, [childs, idParent]);
 
   if (isLoading) {
@@ -186,28 +191,20 @@ export const RenderGrid: React.FC<RenderGripProps> = ({ idParent, slice }) => {
 };
 
 //#region Grid System
-const GridSystemContainer = ({ page, deviceType, isBody, isHeader, isFooter }: GridSystemProps) => {
+const GridSystemContainer = ({ page, deviceType, isBody, isFooter, style }: GridSystemProps) => {
   const [layout, setLayout] = useState<GridItem | null>(null);
   const styleDevice: string = getDeviceSize() as string;
 
   const config = layout || page;
-  const [refreshKey, setRefreshKey] = useState(0);
   const previousComponentRef = useRef(null);
 
-  const MonacoContainerRoot = useMemo(() => {
-    return dynamic(() => import('@/components/grid-systems/monacoContainer'), {
-      ssr: false,
-      loading: () => <LoadingPage />,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey]); // ✅
   const content = (
     <>
       {config?.childs ? (
         <CsContainerRenderSlice
           className="w-full flex flex-col justify-center flex-wrap"
           id={config.id}
-          style={_.get(config, [styleDevice]) as React.CSSProperties}
+          style={{ ...(_.get(config, [styleDevice]) as React.CSSProperties), ...style }}
           styledComponentCss={config?.styledComponentCss}
         >
           <RenderGrid items={config.childs} idParent={config.id!} slice={config} />
@@ -227,7 +224,6 @@ const GridSystemContainer = ({ page, deviceType, isBody, isHeader, isFooter }: G
     socket.on('return-json', async (data) => {
       if (data?.component && data.component !== previousComponentRef.current) {
         previousComponentRef.current = data.component;
-        setRefreshKey((prev) => prev + 1);
         await rebuilComponentMonaco(data.component);
       }
       if (data?.layout) {
@@ -239,20 +235,9 @@ const GridSystemContainer = ({ page, deviceType, isBody, isHeader, isFooter }: G
     };
   }, [deviceType]);
 
-  if (!MonacoContainerRoot || typeof MonacoContainerRoot !== 'function') {
-    return <>{content}</>;
-  }
-
   return (
-    <div
-      className={cn(
-        '',
-        isBody ? 'z-1 min-h-screen' : '',
-        isHeader ? 'z-3 fixed w-full top-0' : '',
-        isFooter ? 'z-3' : ''
-      )}
-    >
-      <MonacoContainerRoot key={refreshKey}>{content}</MonacoContainerRoot>
+    <div className={cn('', isBody ? 'z-1 min-h-screen' : '', isFooter ? 'z-3' : '')} style={style}>
+      {content}
     </div>
   );
 };

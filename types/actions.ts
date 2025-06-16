@@ -1,3 +1,7 @@
+import { TData } from './dataItem';
+import { TVariable } from './stateManagement';
+import { TTypeVariable } from './variable';
+
 export type TApiResponseOption = 'jsonBody' | 'statusCode' | 'succeeded';
 
 export type TSourceValue =
@@ -10,6 +14,7 @@ export type TSourceValue =
   | 'conditions';
 
 export const TTypeSelectValues = [
+  'parameters',
   'appState',
   'componentState',
   'globalState',
@@ -25,7 +30,8 @@ export type TActionSelect =
   | 'conditionalChild'
   | 'conditional'
   | 'loopOverList'
-  | 'loop';
+  | 'loop'
+  | 'customFunction';
 export type TActionFCType = 'action' | 'conditional' | 'conditionalChild' | 'loopOverList' | 'loop';
 export type TStatusResponse = 'success' | 'error';
 export type TOperatorCompare =
@@ -35,7 +41,7 @@ export type TOperatorCompare =
   | 'lessThan'
   | 'greaterThanOrEqual'
   | 'lessThanOrEqual';
-export type TTriggerValue = 'onPageLoad' | 'onClick' | 'onEnter' | 'onMouseDown';
+export type TTriggerValue = 'onPageLoad' | 'onClick' | 'onEnter' | 'onMouseDown' | 'onChange';
 export const OPERATORS: {
   name: string;
   value: TOperatorCompare;
@@ -78,11 +84,7 @@ export type TActionVariable = {
     variableId: string;
     typeStore: TTypeSelect;
   };
-  secondValue: {
-    variableId: string;
-    typeStore: TTypeSelect;
-    value: string;
-  };
+  secondValue: TData;
 };
 
 // API call action configuration
@@ -98,15 +100,8 @@ export type TActionApiCall = {
 };
 
 export type TActionUpdateStateVariable = {
-  firstState: {
-    typeStore: TTypeSelect;
-    variableId: string;
-  };
-  secondState: {
-    typeStore: TTypeSelect;
-    variableId: string;
-    value: string;
-  };
+  firstState: TData;
+  secondState: TData;
 };
 
 export type TActionUpdateState = {
@@ -117,6 +112,7 @@ export type TActionNavigate = {
   isExternal: boolean;
   isNewTab: boolean;
   url: string;
+  parameters: TVariable[];
 };
 
 export type TConditional = {
@@ -156,21 +152,12 @@ export type TConditionalChild = {
   logicOperator: 'and' | 'or';
   fistCondition: string;
   secondCondition: string;
-  compare: TConditionCompareValue;
+  compare: TConditionChildCompareValue;
 };
 export type TConditionChildCompareValue = {
-  firstValue: {
-    variable: string;
-    typeStore: TTypeSelect;
-    valueSelected: TSourceValue;
-  };
+  firstValue: TData;
   operator: TOperatorCompare;
-  secondValue: {
-    typeStore: TTypeSelect;
-    variable: string;
-    value: string;
-    valueSelected: TSourceValue;
-  };
+  secondValue: TData;
 };
 export type TConditionChildMap = {
   label: 'if' | 'else' | 'elseIf' | 'loopCondition';
@@ -192,12 +179,16 @@ export type TActionLoop = {
 
 export type TActionLoopOverList = {
   label: string;
-  variableId: string;
-  typeStore: TTypeSelect;
-  startIndex: number;
-  endIndex: number;
-  stepSize: number;
+  list: TData;
+  startIndex: TData;
+  endIndex: TData;
+  stepSize: TData;
   reserverOrder: boolean;
+};
+export type TActionCustomFunction = TData['customFunction'] & {
+  output: { variableId: string };
+  isList: boolean;
+  outputType: TTypeVariable;
 };
 export type TAction<T = unknown> = {
   id: string;
@@ -207,6 +198,7 @@ export type TAction<T = unknown> = {
   fcType?: TActionFCType;
   type?: TActionSelect | undefined | null;
   data?: T;
+  delay?: number;
 };
 export type TTriggerActionValue = {
   [key: string]: TAction;

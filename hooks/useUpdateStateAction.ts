@@ -2,9 +2,10 @@ import _ from 'lodash';
 import { useEffect, useRef } from 'react';
 
 import { stateManagementStore } from '@/stores';
-import { TAction, TActionUpdateState } from '@/types';
+import { TAction, TActionUpdateState, TTypeSelectState } from '@/types';
 
 import { actionHookSliceStore } from './actionSliceStore';
+import { useHandleData } from './useHandleData';
 
 export type TUseActions = {
   handleUpdateStateAction: (action: TAction<TActionUpdateState>) => Promise<void>;
@@ -17,6 +18,7 @@ export const useUpdateStateAction = ({ executeActionFCType }: TProps): TUseActio
   // State management
 
   // Store hooks
+  const { getData } = useHandleData({});
   const { findVariable, updateVariables } = stateManagementStore();
   const { findAction } = actionHookSliceStore();
   // Memoized actions from data
@@ -38,23 +40,24 @@ export const useUpdateStateAction = ({ executeActionFCType }: TProps): TUseActio
     if (_.isEmpty(updates)) return;
 
     for (const item of updates || []) {
+      const { firstState, secondState } = item;
+      const { type } = item.firstState;
+      if (!firstState || !secondState || !firstState[type]) continue;
       const variableFirst = findVariable({
-        type: item.firstState.typeStore,
-        id: item.firstState.variableId,
+        type: type as TTypeSelectState,
+        id: (item.firstState[type] as any).variableId || '',
       });
+      console.log('🚀 ~ handleUpdateStateAction ~ item:', item);
 
-      const variableSecond = findVariable({
-        type: item.secondState.typeStore,
-        id: item.secondState.variableId,
-      });
+      const variableSecond = getData(item.secondState);
+      console.log('🚀 ~ handleUpdateStateAction ~ variableSecond:', variableSecond);
+
       if (!variableFirst) return;
 
-      variableFirst.value = item.secondState.variableId
-        ? variableSecond?.value ?? ''
-        : item.secondState.value ?? '';
+      variableFirst.value = variableSecond;
 
       updateVariables({
-        type: item.firstState.typeStore,
+        type: type as TTypeSelectState,
         dataUpdate: variableFirst,
       });
     }

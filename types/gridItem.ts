@@ -1,6 +1,8 @@
 import { TTriggerActions } from './actions';
+import { TData } from './dataItem';
 
 interface GridItem {
+  _id?: string;
   id?: string; // Optional slice ID for identifying slices
   columns?: string; // Number of columns (for grid layout)
   rows?: string; // Number of rows (for grid layout)
@@ -43,8 +45,8 @@ interface GridItem {
   inputText?: TInputText;
   styledComponentCss?: string;
   props?: any;
+  data?: TData;
 }
-
 export type TInputText = {
   prefixIcon?: string;
   suffixIcon?: string;

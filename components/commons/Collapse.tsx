@@ -1,12 +1,13 @@
 'use client';
 
+import _ from 'lodash';
 import { ChevronsUpDown } from 'lucide-react';
 import * as React from 'react';
 import { CSSProperties } from 'styled-components';
 
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useData } from '@/hooks';
+import { useHandleData } from '@/hooks/useHandleData';
 import { cn } from '@/lib/utils';
 import { GridItem, TCollapse } from '@/types/gridItem';
 
@@ -16,7 +17,8 @@ type TProps = {
 };
 const CollapsibleDemo: React.FC<TProps> = ({ data, style }) => {
   const collapse: TCollapse | undefined = React.useMemo(() => data?.collapse || undefined, [data]);
-  const { title } = useData({ layoutData: data, defaultTitle: 'Collapsible' });
+  const { dataState } = useHandleData({ dataProp: data?.data });
+  const title = _.get(data, 'dataSlice.title', 'Button') || dataState;
   const [isOpen, setIsOpen] = React.useState(false);
   return (
     <Collapsible
