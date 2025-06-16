@@ -51,6 +51,8 @@ export default function ClientWrapper(props: any) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
+  console.log('isPreviewUI', props)
+
   if (isPreviewUI) {
     return <PreviewUI {...props} />;
   }
@@ -86,7 +88,12 @@ const RenderUIClient = (props: any) => {
   
   const { setActions } = actionsStore();
   const { enable, pages, entryPage } = authSettingStore();
-  const { bodyLayout, isLoading } = useConstructorDataAPI(props?.documentId, props?.pathName);
+
+  const newPathName =
+  Array.isArray(props?.pathName)
+    ? props.pathName.join('/')
+    : props?.pathName || '';
+  const { bodyLayout, isLoading } = useConstructorDataAPI(props?.documentId, newPathName);
 
   useEffect(() => {
     if (bodyLayout) setData(bodyLayout);

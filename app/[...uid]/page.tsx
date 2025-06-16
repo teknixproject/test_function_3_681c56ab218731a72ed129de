@@ -12,7 +12,8 @@ export const revalidate = 0;
 
 type Params = { uid: string[] };
 const handleParam = ({ uid }: { uid: string[] }) => {
-  return { uid: uid[0], param: uid.slice(1) };
+  // return { uid: uid[0], param: uid.slice(1) };
+  return { uid, param: uid };
 };
 export default async function Page({ params }: { params: Params }) {
   const paramsProp = await params;
